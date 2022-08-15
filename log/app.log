@@ -1,0 +1,11 @@
+ERROR:root:Unexpected error:
+Traceback (most recent call last):
+  File "/home/elaine/app/file_manager/src/source.py", line 177, in <module>
+    update_image_file(album_metadata, dir)
+  File "/home/elaine/app/file_manager/src/source.py", line 40, in update_image_file
+    shutil.copy(f"{dir}/tmp/{image_file}", "current")
+  File "/usr/lib/python3.10/shutil.py", line 417, in copy
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/usr/lib/python3.10/shutil.py", line 254, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/elaine/Downloads/acid_planet/(ACID PLANET 1) Unit Moebius - Acid Planet 1 (1994) [2015]/tmp/cover.jpg'
