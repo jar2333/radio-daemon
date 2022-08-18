@@ -22,6 +22,9 @@ def to_pcm(file_path):
     return ffmpeg_process.stdout
 
 def update_metadata_file(track_metadata, ices_process):
+    #add accessed metadata, sensitive to when this file is written!
+    track_metadata['accessed'] = str(datetime.datetime.now(datetime.timezone.utc))
+
     with open('tmp/metadata.txt', 'w') as f:
         f.write("\n".join([f"{key}={track_metadata[key]}" for key in track_metadata]))
     #send signal to ices process that metadata.txt updated     
@@ -57,7 +60,6 @@ def create_track_metadata(file_metadata, album_metadata, slot):
         track_metadata['title'] = track_metadata['filename']
     track_metadata['length']   = str(length)
     track_metadata['genre']    = slot.genre #can be changed to general album metadata later
-    track_metadata['accessed'] = str(datetime.datetime.now(datetime.timezone.utc))
 
     return track_metadata
 

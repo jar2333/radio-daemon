@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Response
+from fastapi.responses import PlainTextResponse
 from starlette.middleware.cors import CORSMiddleware
 import imghdr
+import datetime
 
 app = FastAPI()
 
@@ -23,6 +25,10 @@ async def get_metadata():
 )
 async def get_image():
     headers = {"Cache-Control": "no-store"}
-    image_type = imghdr.what("./current")
+    image_type = imghdr.what("tmp/current")
     with open("tmp/current", "rb") as f:
         return Response(content=f.read(), media_type=f"image/{image_type}", headers=headers)
+
+@app.get("/time", response_class=PlainTextResponse)
+async def get_time():
+    return str(datetime.datetime.now(datetime.timezone.utc))
