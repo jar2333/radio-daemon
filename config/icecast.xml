@@ -92,6 +92,7 @@
     -->
     <http-headers>
         <header name="Access-Control-Allow-Origin" value="*" />
+        <header name="Cache-control" value="no-cache" />
     </http-headers>
 
 
