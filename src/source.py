@@ -8,6 +8,7 @@ import subprocess
 import signal
 import mutagen
 import imghdr
+from random import shuffle
 
 import logging
 
@@ -71,14 +72,11 @@ class TimeSlot:
         self.albums = []
 
     #automatically detects and stores the absolute path, image, and track list
-    def add_album(self, path, album_metadata):
-        #expand album directory
-        dir = os.path.expanduser(path)
-
+    def add_album(self, dir, album_metadata):
         #for counting album duration
 
-        #get all tracks
-        track_filenames = os.listdir(dir)
+        #get all tracks (sorted by filename!)
+        track_filenames = sorted(os.listdir(dir))
 
         tracks = []
         for fn in track_filenames:
@@ -130,14 +128,28 @@ def parse_slots():
 
         s = TimeSlot(start, end, genre)
 
-        for album in slot.findall('album'):
-            path = album.attrib['dir']
-            # metadata_elements = [album.find(t) for t in ['title', 'artist', 'year']]
-            # metadata = {e.tag : e.text.strip() for e in metadata_elements if not (e is None)}
-            # s.add_album(path, metadata)
-            s.add_album(path, {})
+        #parse path to find album dirs
+        albums_path = os.path.expanduser(slot.find('albums').text.strip())
+
+        #parse blacklisted album dirs
+        blacklisted = {e.text.strip() for e in slot.find('blacklist').findall('album')}
+
+        #add albums to slot in randomized order
+        album_directories = os.listdir(albums_path)
+        shuffle(album_directories)
+
+        for album_dir in album_directories:
+            if not album_dir in blacklisted:
+                path = f"{albums_path}/{album_dir}"
+                # metadata_elements = [album.find(t) for t in ['title', 'artist', 'year']]
+                # metadata = {e.tag : e.text.strip() for e in metadata_elements if not (e is None)}
+                s.add_album(path, {})
 
         slots.append(s)
+
+    for s in slots:
+        for dir, tracks, album_metadata in s.albums:
+            print(f"parsed album: {dir.split('/')[-1]}")
 
     return slots
 
@@ -174,7 +186,7 @@ ices_process = subprocess.Popen(['ices', './config/ices.xml'],
                                 stdout=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL)
 print("Initializing IceS...")
-time.sleep(5)
+time.sleep(3)
 print("IceS started.")
 
 try:
