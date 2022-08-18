@@ -29,6 +29,8 @@ async def get_image():
     with open("tmp/current", "rb") as f:
         return Response(content=f.read(), media_type=f"image/{image_type}", headers=headers)
 
-@app.get("/time", response_class=PlainTextResponse)
+@app.get("/time", 
+    response_class=PlainTextResponse
+)
 async def get_time():
     return str(datetime.datetime.now(datetime.timezone.utc))
