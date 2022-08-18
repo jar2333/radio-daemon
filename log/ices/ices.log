@@ -21648,3 +21648,71 @@
 [2022-08-15  15:02:57] INFO input/input_loop All instances removed, shutting down...
 [2022-08-15  15:02:57] INFO metadata/metadata_thread_signal metadata thread shutting down
 [2022-08-15  15:02:58] INFO ices-core/main Shutdown complete
+[2022-08-18  13:31:40] INFO ices-core/main IceS 2.0.3 started...
+[2022-08-18  13:31:40] INFO input-stdinpcm/stdin_open_module Starting metadata update thread
+[2022-08-18  13:31:40] INFO signals/signal_usr1_handler Metadata update requested
+[2022-08-18  13:31:40] INFO input-stdinpcm/stdin_read Reached EOF, no more data available
+
+[2022-08-18  13:31:40] INFO audio/downmix_initialise Enabling stereo->mono downmixing
+[2022-08-18  13:31:40] INFO audio/resample_initialise Initialised resampler for 1 channels, from 44100 Hz to 22050 Hz
+[2022-08-18  13:31:40] INFO encode/encode_initialise Encoder initialising in VBR mode: 1 channel(s), 22050 Hz, quality 
+[2022-08-18  13:31:40] WARN metadata/metadata_thread_signal Failed to open file "metadata.txt" for metadata update: No such file or directory
+[2022-08-18  13:31:40] INFO stream/ices_instance_stream Connected to server: localhost:4000/test.ogg
+[2022-08-18  13:31:40] DBUG stream-shared/stream_wait_for_data Shutdown signalled: thread shutting down
+[2022-08-18  13:31:40] DBUG encode/encode_clear Clearing encoder engine
+[2022-08-18  13:31:41] DBUG input/input_loop An instance died, removing it
+[2022-08-18  13:31:41] DBUG input/input_flush_queue Input queue flush requested
+[2022-08-18  13:31:41] INFO input/input_loop All instances removed, shutting down...
+[2022-08-18  13:31:41] INFO metadata/metadata_thread_signal metadata thread shutting down
+[2022-08-18  13:31:41] INFO ices-core/main Shutdown complete
+[2022-08-18  13:35:59] INFO ices-core/main IceS 2.0.3 started...
+[2022-08-18  13:35:59] INFO input-stdinpcm/stdin_open_module Starting metadata update thread
+[2022-08-18  13:35:59] INFO signals/signal_usr1_handler Metadata update requested
+[2022-08-18  13:35:59] INFO audio/downmix_initialise Enabling stereo->mono downmixing
+[2022-08-18  13:35:59] INFO audio/resample_initialise Initialised resampler for 1 channels, from 44100 Hz to 22050 Hz
+[2022-08-18  13:35:59] INFO encode/encode_initialise Encoder initialising in VBR mode: 1 channel(s), 22050 Hz, quality 
+[2022-08-18  13:35:59] WARN metadata/metadata_thread_signal Failed to open file "metadata.txt" for metadata update: No such file or directory
+[2022-08-18  13:35:59] INFO stream/ices_instance_stream Connected to server: localhost:4000/test.ogg
+[2022-08-18  13:36:04] INFO signals/signal_usr1_handler Metadata update requested
+[2022-08-18  13:36:04] DBUG metadata/metadata_thread_signal meta thread wakeup
+[2022-08-18  13:36:04] WARN metadata/metadata_thread_signal Failed to open file "metadata.txt" for metadata update: No such file or directory
+[2022-08-18  13:36:04] INFO input-stdinpcm/stdin_read Reached EOF, no more data available
+
+[2022-08-18  13:36:04] DBUG stream-shared/stream_wait_for_data Shutdown signalled: thread shutting down
+[2022-08-18  13:36:04] DBUG encode/encode_clear Clearing encoder engine
+[2022-08-18  13:36:04] DBUG input/input_loop An instance died, removing it
+[2022-08-18  13:36:04] DBUG input/input_flush_queue Input queue flush requested
+[2022-08-18  13:36:04] INFO input/input_loop All instances removed, shutting down...
+[2022-08-18  13:36:04] INFO metadata/metadata_thread_signal metadata thread shutting down
+[2022-08-18  13:36:04] INFO ices-core/main Shutdown complete
+[2022-08-18  13:36:54] INFO ices-core/main IceS 2.0.3 started...
+[2022-08-18  13:36:54] INFO input-stdinpcm/stdin_open_module Starting metadata update thread
+[2022-08-18  13:36:54] INFO signals/signal_usr1_handler Metadata update requested
+[2022-08-18  13:36:54] INFO audio/downmix_initialise Enabling stereo->mono downmixing
+[2022-08-18  13:36:54] INFO audio/resample_initialise Initialised resampler for 1 channels, from 44100 Hz to 22050 Hz
+[2022-08-18  13:36:54] INFO encode/encode_initialise Encoder initialising in VBR mode: 1 channel(s), 22050 Hz, quality 
+[2022-08-18  13:36:54] WARN metadata/metadata_thread_signal Failed to open file "metadata.txt" for metadata update: No such file or directory
+[2022-08-18  13:36:54] INFO stream/ices_instance_stream Connected to server: localhost:4000/test.ogg
+[2022-08-18  13:36:59] INFO signals/signal_usr1_handler Metadata update requested
+[2022-08-18  13:36:59] DBUG metadata/metadata_thread_signal meta thread wakeup
+[2022-08-18  13:36:59] WARN metadata/metadata_thread_signal Failed to open file "metadata.txt" for metadata update: No such file or directory
+[2022-08-18  13:37:04] INFO audio/resample_initialise Initialised resampler for 1 channels, from 44100 Hz to 22050 Hz
+[2022-08-18  13:37:04] DBUG encode/encode_clear Clearing encoder engine
+[2022-08-18  13:37:04] INFO encode/encode_initialise Encoder initialising in VBR mode: 1 channel(s), 22050 Hz, quality 
+[2022-08-18  13:39:00] INFO signals/signal_usr1_handler Metadata update requested
+[2022-08-18  13:39:00] DBUG metadata/metadata_thread_signal meta thread wakeup
+[2022-08-18  13:39:00] WARN metadata/metadata_thread_signal Failed to open file "metadata.txt" for metadata update: No such file or directory
+[2022-08-18  13:42:06] INFO signals/signal_usr1_handler Metadata update requested
+[2022-08-18  13:42:06] DBUG metadata/metadata_thread_signal meta thread wakeup
+[2022-08-18  13:42:06] WARN metadata/metadata_thread_signal Failed to open file "metadata.txt" for metadata update: No such file or directory
+[2022-08-18  13:47:22] INFO signals/signal_usr1_handler Metadata update requested
+[2022-08-18  13:47:22] DBUG metadata/metadata_thread_signal meta thread wakeup
+[2022-08-18  13:47:22] WARN metadata/metadata_thread_signal Failed to open file "metadata.txt" for metadata update: No such file or directory
+[2022-08-18  13:50:07] INFO signals/signal_int_handler Shutdown requested...
+[2022-08-18  13:50:07] DBUG stream-shared/stream_wait_for_data Shutdown signalled: thread shutting down
+[2022-08-18  13:50:07] DBUG encode/encode_clear Clearing encoder engine
+[2022-08-18  13:50:07] DBUG input/input_loop An instance died, removing it
+[2022-08-18  13:50:07] DBUG input/input_flush_queue Input queue flush requested
+[2022-08-18  13:50:07] INFO input/input_loop All instances removed, shutting down...
+[2022-08-18  13:50:07] INFO metadata/metadata_thread_signal metadata thread shutting down
+[2022-08-18  13:50:07] INFO ices-core/main Shutdown complete

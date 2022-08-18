@@ -13,16 +13,9 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG, filename='./log/app.log')
 
-def to_pcm(file_path, length=None):
+def to_pcm(file_path):
     #hardcoded: sample rate 44100, channels 2. IceS expects these two values (specified in ices.xml)
-    cmd = ["ffmpeg", "-i", file_path, "-ar", "44100", "-ac", "2", "-vn", "-f", "s16le", "-acodec", "pcm_s16le"]
-
-    #if length is provided, truncate to no more than 5 minutes
-    if not (length is None):
-        cmd += ["-t", f"{int(length)}"]
-
-    #pipe to stdout
-    cmd.append("-")
+    cmd = ["ffmpeg", "-i", file_path, "-ar", "44100", "-ac", "2", "-vn", "-f", "s16le", "-acodec", "pcm_s16le", "-"]
 
     ffmpeg_process = subprocess.run(cmd, capture_output=True)
 
@@ -34,7 +27,7 @@ def update_metadata_file(track_metadata, ices_process):
     #send signal to ices process that metadata.txt updated     
     ices_process.send_signal(signal.SIGUSR1)    
 
-def update_image_file(album_metadata, dir):
+def update_image_file(dir, album_metadata):
     image_file = album_metadata['image']
     image_type = album_metadata['image_type']
     shutil.copy(f"{dir}/{image_file}", "tmp/current")
@@ -76,9 +69,32 @@ class TimeSlot:
         self.albums = []
 
     #automatically detects and stores the absolute path, image, and track list
-    def add_album(self, path, metadata):
+    def add_album(self, path, album_metadata):
+        #expand album directory
         dir = os.path.expanduser(path)
-        tracks = os.listdir(dir)
+
+        #for counting album duration
+
+        #get all tracks
+        track_filenames = os.listdir(dir)
+
+        tracks = []
+        for fn in track_filenames:
+            file_path = f"{dir}/{fn}"
+
+            #get file metadata
+            file_metadata = get_file_metadata(file_path)
+            if file_metadata is None: #if not audio/failed, skip
+                continue
+
+            tags, length = file_metadata
+
+            #create track metadata
+            track_metadata = create_track_metadata(file_metadata, album_metadata, self)
+
+            tracks.append((file_path, track_metadata))
+
+        #auto find image file
         image_file = None
         file_type = None
         for file in os.listdir(dir):
@@ -86,10 +102,12 @@ class TimeSlot:
             if file_type:
                 image_file = file
                 break
-        metadata['image'] = image_file
-        metadata['image_type'] = file_type
-        tracks.remove(image_file)
-        self.albums.append((dir, tracks, metadata))
+
+        #set image album metadata
+        album_metadata['image'] = image_file
+        album_metadata['image_type'] = file_type
+
+        self.albums.append((dir, tracks, album_metadata))
 
     def is_current(self):
         current = datetime.datetime.now().time()
@@ -153,63 +171,47 @@ ices_process = subprocess.Popen(['ices', './config/ices.xml'],
                                 stdin=subprocess.PIPE, 
                                 stdout=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL)
+print("Initializing IceS...")
+time.sleep(5)
 print("IceS started.")
 
 try:
     while True:
         restart = False #flag initialize
 
-        # print("Finding time slot...")
+        print("Finding time slot...")
         #find currently applicable slot
         slot = find_current_slot(slots)
         
         if not (slot is None):
-            # print("Time slot found!")
-            # print(f"start: {slot.start}\nend: {slot.end}")
+            print("Time slot found!")
+            print(f"start: {slot.start}\nend: {slot.end}")
 
             #get slot albums
             for dir, tracks, album_metadata in slot.albums:
                 if restart:
                     break
 
-                # print("Accessing album at directory " + dir)
+                print("Accessing album at directory " + dir)
                 #update current image (find using imgdhr)
-                update_image_file(album_metadata, dir)
+                update_image_file(dir, album_metadata)
 
-                for track in tracks:   
-                    file_path = f"{dir}/{track}"
+                for file_path, track_metadata in tracks:   
+                    length = float(track_metadata['length'])
 
-                    #get file metadata
-                    file_metadata = get_file_metadata(file_path)
-                    if file_metadata is None: #if not audio/failed, skip
-                        continue
-
-                    tags, length = file_metadata
-
-                    #create track metadata
-                    track_metadata = create_track_metadata(file_metadata, album_metadata, slot)
-                        
                     #check if song length exceeds slot threshold
                     early_end = exceeds_slot(length, slot)
-
-                    pcm_length = None
-
-                    if early_end:
-                        # print("Track length exceeded time slot.")
-                        new_length = min([int(length), 300])
-                        track_metadata['length'] = new_length #can be 'duration' instead?
-                        pcm_length = new_length
                          
                     #update metadata.txt
-                    update_metadata_file(track_metadata, ices_process)   
-                    # print("Metadata.txt updated!")
+                    update_metadata_file(track_metadata, ices_process)  
+                    print("Metadata.txt updated!")
 
                     #decode file into raw pcm (ffmpeg run)
-                    # print(f"Converting file {track} to pcm:")
-                    pcm = to_pcm(file_path, length=pcm_length)
+                    print(f"Converting file {track_metadata['filename']} to pcm:")
+                    pcm = to_pcm(file_path)
 
                     #pipe pcm to ices (terminate after 5 minutes if applicable):
-                    # print("Writing pcm to IceS process stdin:")
+                    print("Writing pcm to IceS process stdin:")
                     ices_process.stdin.write(pcm)
                     ices_process.stdin.flush()
                         

@@ -9,3 +9,30 @@ Traceback (most recent call last):
   File "/usr/lib/python3.10/shutil.py", line 254, in copyfile
     with open(src, 'rb') as fsrc:
 FileNotFoundError: [Errno 2] No such file or directory: '/home/elaine/Downloads/acid_planet/(ACID PLANET 1) Unit Moebius - Acid Planet 1 (1994) [2015]/tmp/cover.jpg'
+ERROR:root:Unexpected error:
+Traceback (most recent call last):
+  File "/home/elaine/app/source_daemon/src/source.py", line 199, in <module>
+    early_end = exceeds_slot(length, slot)
+  File "/home/elaine/app/source_daemon/src/source.py", line 153, in exceeds_slot
+    return (end_delta - current_delta).total_seconds() < length
+TypeError: '<' not supported between instances of 'float' and 'str'
+ERROR:root:Unexpected error:
+Traceback (most recent call last):
+  File "/home/elaine/app/source_daemon/src/source.py", line 211, in <module>
+    ices_process.stdin.write(pcm)
+BrokenPipeError: [Errno 32] Broken pipe
+ERROR:root:Unexpected error:
+Traceback (most recent call last):
+  File "/home/elaine/app/source_daemon/src/source.py", line 213, in <module>
+    ices_process.stdin.write(pcm)
+BrokenPipeError: [Errno 32] Broken pipe
+ERROR:root:Unexpected error:
+Traceback (most recent call last):
+  File "/home/elaine/app/source_daemon/src/source.py", line 217, in <module>
+    ices_process.stdin.write(pcm)
+BrokenPipeError: [Errno 32] Broken pipe
+ERROR:root:Unexpected error:
+Traceback (most recent call last):
+  File "/home/elaine/app/source_daemon/src/source.py", line 211, in <module>
+    print(f"Converting file {track} to pcm:")
+NameError: name 'track' is not defined
