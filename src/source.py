@@ -30,24 +30,26 @@ def update_metadata_file(track_metadata, ices_process):
 
     with open('tmp/metadata.txt', 'w') as f:
         f.write("\n".join([f"{key}={track_metadata[key]}" for key in track_metadata]))
+
     #send signal to ices process that metadata.txt updated     
     ices_process.send_signal(signal.SIGUSR1)    
 
 def update_image_file(dir, album_metadata):
     image_file = album_metadata['image']
-    image_type = album_metadata['image_type']
     shutil.copy(f"{dir}/{image_file}", "tmp/current")
 
 def get_file_metadata(file_path):
     f = mutagen.File(file_path)
     if f is None: #if not audio/failed
         return None
-    tags = dict(f.tags) #make it not return a (key, singleton list) pair?
+    d = dict(f.tags)
+
+    tags = {k : d[k][0] for k in d} #make it not return a (key, singleton list) pair?
     length = f.info.length
 
     #add filename to tags:
     filename = file_path.split('/')[-1]
-    tags['filename'] = [filename]
+    tags['filename'] = filename
 
     return (tags, length)
 
@@ -57,7 +59,7 @@ def create_track_metadata(file_metadata, album_metadata, slot):
     track_metadata = dict(album_metadata) #copy
     for key in tags:
         if not key in track_metadata:
-            track_metadata[key] = tags[key][0]
+            track_metadata[key] = tags[key]
 
     if not 'title' in track_metadata:
         track_metadata['title'] = track_metadata['filename']
@@ -111,7 +113,6 @@ class TimeSlot:
 
         #set image album metadata
         album_metadata['image'] = image_file
-        album_metadata['image_type'] = file_type
 
         self.albums.append((dir, tracks, album_metadata))
 
@@ -163,23 +164,35 @@ def parse_slots():
 
     return slots
 
-#assumes slots are ordered in time
-def find_current_slot(slots, offset):
-    for i in range(len(slots)):
-        s = slots[i]
-        if s.is_current() and not offset:
-            return s
-        elif s.is_current() and offset:
-            return slots[(i+1) % len(slots)]
-
-    return None
-
 def get_remaining_seconds(slot):
     current       = datetime.datetime.now()
     end_delta     = datetime.timedelta(hours=slot.end.hour, minutes=slot.end.minute)
     current_delta = datetime.timedelta(hours=current.hour, minutes=current.minute)
 
     return (end_delta.total_seconds() - current_delta.total_seconds()) % 86400 #seconds in 24 hours!
+
+def get_seconds_to_start(current_date, slot):
+    start_delta   = datetime.timedelta(hours=slot.start.hour, minutes=slot.start.minute)
+    current_delta = datetime.timedelta(hours=current_date.hour, minutes=current_date.minute)
+
+    return (start_delta.total_seconds() - current_delta.total_seconds()) % 86400 #seconds in 24 hours!
+
+#assumes slots are ordered in time
+def find_current_slot(slots, offset):
+    current_date = datetime.datetime.now()
+
+    nearest_seconds_to_start = 86400
+    nearest_index = -1
+    for i in range(len(slots)):
+        seconds_to_start = get_seconds_to_start(current_date, slots[i])
+        if seconds_to_start <= nearest_seconds_to_start:
+            nearest_seconds_to_start = seconds_to_start
+            nearest_index = i
+
+    if offset:    
+        return slots[(nearest_index+1) % len(slots)]
+
+    return slots[nearest_index]
 
 #slots (defined by user-config.xml)
 #--albums (directory)
