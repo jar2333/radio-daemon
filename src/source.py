@@ -14,6 +14,8 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG, filename='./log/app.log')
 
+USER_CONFIG_PATH = 'user-config.xml'
+
 def to_pcm(file_path):
     #hardcoded: sample rate 44100, channels 2. IceS expects these two values (specified in ices.xml)
     cmd = ["ffmpeg", "-i", file_path, "-ar", "44100", "-ac", "2", "-vn", "-f", "s16le", "-acodec", "pcm_s16le", "-"]
@@ -74,6 +76,7 @@ class TimeSlot:
     #automatically detects and stores the absolute path, image, and track list
     def add_album(self, dir, album_metadata):
         #for counting album duration
+        # album_length = 0
 
         #get all tracks (sorted by filename!)
         track_filenames = sorted(os.listdir(dir))
@@ -88,6 +91,9 @@ class TimeSlot:
                 continue
 
             tags, length = file_metadata
+
+            #update album length
+            # album_length += length
 
             #create track metadata
             track_metadata = create_track_metadata(file_metadata, album_metadata, self)
@@ -117,7 +123,7 @@ def parse_slots():
     slots = []
 
     #read config
-    tree = ET.parse('user-config.xml')
+    tree = ET.parse(USER_CONFIG_PATH)
     root = tree.getroot()
 
     #parse slots
@@ -151,22 +157,29 @@ def parse_slots():
         for dir, tracks, album_metadata in s.albums:
             print(f"parsed album: {dir.split('/')[-1]}")
 
+    #sort wrt start time (valid asumming slots don't overlap!) 
+    #would be useful to add a check for this!
+    slots.sort(key=lambda s: s.start)
+
     return slots
 
-def find_current_slot(slots):
-    slot = None
-    for s in slots:
-        if s.is_current():
-            slot = s
-            break
-    return slot
+#assumes slots are ordered in time
+def find_current_slot(slots, offset):
+    for i in range(len(slots)):
+        s = slots[i]
+        if s.is_current() and not offset:
+            return s
+        elif s.is_current() and offset:
+            return slots[(i+1) % len(slots)]
 
-def exceeds_slot(length, slot):
+    return None
+
+def get_remaining_seconds(slot):
     current       = datetime.datetime.now()
     end_delta     = datetime.timedelta(hours=slot.end.hour, minutes=slot.end.minute)
     current_delta = datetime.timedelta(hours=current.hour, minutes=current.minute)
 
-    return (end_delta - current_delta).total_seconds() < length
+    return (end_delta.total_seconds() - current_delta.total_seconds()) % 86400 #seconds in 24 hours!
 
 #slots (defined by user-config.xml)
 #--albums (directory)
@@ -178,7 +191,7 @@ def exceeds_slot(length, slot):
 # change song  -> new song title, song artist, song year -> update metadata.txt
 
 slots = parse_slots()
-last_edited = os.path.getmtime('user-config.xml')
+last_edited = os.path.getmtime(USER_CONFIG_PATH)
 
 #start ices stream (CONSTANT)
 ices_process = subprocess.Popen(['ices', './config/ices.xml'], 
@@ -190,12 +203,14 @@ time.sleep(3)
 print("IceS started.")
 
 try:
+    offset = False
     while True:
         restart = False #flag initialize
 
         print("Finding time slot...")
         #find currently applicable slot
-        slot = find_current_slot(slots)
+        slot = find_current_slot(slots, offset)
+        offset = False
         
         if not (slot is None):
             print("Time slot found!")
@@ -205,16 +220,23 @@ try:
             for dir, tracks, album_metadata in slot.albums:
                 if restart:
                     break
+                
+                remaining_seconds = get_remaining_seconds(slot)
+                print(f"remaining seconds: {remaining_seconds}")
+                if remaining_seconds <= 900:
+                    print("Ending time slot early...")
+                    offset = True
+                    break
 
                 print("Accessing album at directory " + dir)
                 #update current image (find using imgdhr)
                 update_image_file(dir, album_metadata)
 
+                #loop through tracks (cache album length?)
+                album_length = 0
                 for file_path, track_metadata in tracks:   
                     length = float(track_metadata['length'])
-
-                    #check if song length exceeds slot threshold
-                    early_end = exceeds_slot(length, slot)
+                    album_length += length
                          
                     #update metadata.txt
                     update_metadata_file(track_metadata, ices_process)  
@@ -229,30 +251,34 @@ try:
                     ices_process.stdin.write(pcm)
                     ices_process.stdin.flush()
                         
-                    if early_end:
+                    #check if config was edited
+                    recent_last_edited = os.path.getmtime(USER_CONFIG_PATH)
+                    if last_edited != recent_last_edited:
+                        # print("Config edited, updating slots and restarting...")
+                        last_edited = recent_last_edited 
+                        slots = parse_slots()
+
                         #look for new slot
                         restart = True
+                        offset  = False
                         break
-                    else:
-                        #check if config was edited
-                        recent_last_edited = os.path.getmtime('user-config.xml')
-                        if last_edited != recent_last_edited:
-                            # print("Config edited, updating slots and restarting...")
-                            last_edited = recent_last_edited 
-                            slots = parse_slots()
 
-                            #look for new slot
-                            restart = True
-                            break
-
-            # Time slot finished, looping
+                # Time slot finished
+                
+                #check if album runtime has surpassed alloted slot time
+                if album_length >= remaining_seconds:
+                    print("Album surpassed slot length. Seeking new slot...")
+                    offset = False
+                    break
+                
+                #looping...
         else:
             #sleep for an amount of time, play an intermission, etc... then try again
-            # print("No slot available. Sleeping for 60 seconds...")
+            print("No slot available. Sleeping for 60 seconds...")
             time.sleep(60)
 
             #check if config was edited
-            recent_last_edited = os.path.getmtime('user-config.xml')
+            recent_last_edited = os.path.getmtime(USER_CONFIG_PATH)
             if last_edited != recent_last_edited:
                 # print("Config edited, updating slots and restarting...")
                 last_edited = recent_last_edited 
