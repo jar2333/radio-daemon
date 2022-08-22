@@ -19,6 +19,6 @@ do {
     -f mp3 \
     icecast://source:$ICECAST_PASSWORD@localhost:$ICECAST_PORT/$NEW_MOUNT
 } || { 
-    echo "sleeping..." && sleep 60 
+    sleep 60 
 }
 done
