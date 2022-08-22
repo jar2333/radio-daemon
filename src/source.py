@@ -116,10 +116,7 @@ class TimeSlot:
 
         self.albums.append((dir, tracks, album_metadata))
 
-    def is_current(self):
-        current = datetime.datetime.now().time()
-        return self.start <= current <= self.end
-
+#brittle, but it works...
 def parse_slots():
     slots = []
 
@@ -193,7 +190,9 @@ def find_current_slot(slots, offset):
         return slots[(nearest_index+1) % len(slots)]
 
     return slots[nearest_index]
-
+    
+def has_day_passed(album_play_date):
+    return (datetime.datetime.now() - album_play_date).total_seconds() >= 86400
 #slots (defined by user-config.xml)
 #--albums (directory)
 #----songs (files)
@@ -205,6 +204,12 @@ def find_current_slot(slots, offset):
 
 slots = parse_slots()
 last_edited = os.path.getmtime(USER_CONFIG_PATH)
+
+#key=path, value=date_played
+#check if not here OR 24 hours have passed before playing
+#use bool flag to indicate if a slot got to play any albums
+#if not, sleep, wait for config changes lol
+ALBUM_BLACKLIST = dict()
 
 #start ices stream (CONSTANT)
 ices_process = subprocess.Popen(['ices', './config/ices.xml'], 
@@ -229,10 +234,18 @@ try:
             print("Time slot found!")
             print(f"start: {slot.start}\nend: {slot.end}")
 
+            some_album_played = False
             #get slot albums
             for dir, tracks, album_metadata in slot.albums:
                 if restart:
                     break
+
+                #check if album is blacklisted:
+                if not dir in ALBUM_BLACKLIST or has_day_passed(ALBUM_BLACKLIST[dir]):
+                    #update blacklist last_played
+                    ALBUM_BLACKLIST[dir] = datetime.datetime.now()
+                else:
+                    continue #skip this album
                 
                 remaining_seconds = get_remaining_seconds(slot)
                 print(f"remaining seconds: {remaining_seconds}")
@@ -240,6 +253,9 @@ try:
                     print("Ending time slot early...")
                     offset = True
                     break
+
+                #album playback successfull
+                some_album_played = True
 
                 print("Accessing album at directory " + dir)
                 #update current image (find using imgdhr)
@@ -285,9 +301,22 @@ try:
                     break
                 
                 #looping...
+
+            #end of slot!
+            if not some_album_played:
+                print("No album played. Check that sufficient albums have been supplied. Sleeping for 60 seconds...")
+                time.sleep(60)
+
+                #check if config was edited
+                recent_last_edited = os.path.getmtime(USER_CONFIG_PATH)
+                if last_edited != recent_last_edited:
+                    # print("Config edited, updating slots and restarting...")
+                    last_edited = recent_last_edited 
+                    slots = parse_slots()
+
         else:
             #sleep for an amount of time, play an intermission, etc... then try again
-            print("No slot available. Sleeping for 60 seconds...")
+            print("No slot available. Check that slots are specified. Sleeping for 60 seconds...")
             time.sleep(60)
 
             #check if config was edited
