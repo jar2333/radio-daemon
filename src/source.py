@@ -12,9 +12,11 @@ from random import shuffle
 
 import logging
 
-logging.basicConfig(level=logging.DEBUG, filename='./log/app.log')
+DAEMON_DIR = "/home/elaine/app/source_daemon"
 
-USER_CONFIG_PATH = 'user-config.xml'
+logging.basicConfig(level=logging.DEBUG, filename=f"{DAEMON_DIR}/log/app.log")
+
+USER_CONFIG_PATH = "user-config.xml"
 
 def to_pcm(file_path):
     #hardcoded: sample rate 44100, channels 2. IceS expects these two values (specified in ices.xml)
@@ -28,7 +30,7 @@ def update_metadata_file(track_metadata, ices_process):
     #add accessed metadata, sensitive to when this file is written!
     track_metadata['accessed'] = str(datetime.datetime.now(datetime.timezone.utc))
 
-    with open('tmp/metadata.txt', 'w') as f:
+    with open(f"{DAEMON_DIR}/tmp/metadata.txt", 'w') as f:
         f.write("\n".join([f"{key}={track_metadata[key]}" for key in track_metadata]))
 
     #send signal to ices process that metadata.txt updated     
@@ -36,7 +38,7 @@ def update_metadata_file(track_metadata, ices_process):
 
 def update_image_file(dir, album_metadata):
     image_file = album_metadata['image']
-    shutil.copy(f"{dir}/{image_file}", "tmp/current")
+    shutil.copy(f"{dir}/{image_file}", f"{DAEMON_DIR}/tmp/current")
 
 def get_file_metadata(file_path):
     f = mutagen.File(file_path)
@@ -153,7 +155,7 @@ def parse_slots():
 
     for s in slots:
         for dir, tracks, album_metadata in s.albums:
-            print(f"parsed album: {dir.split('/')[-1]}")
+            logging.debug(f"parsed album: {dir.split('/')[-1]}")
 
     #sort wrt start time (valid asumming slots don't overlap!) 
     #would be useful to add a check for this!
@@ -212,27 +214,27 @@ last_edited = os.path.getmtime(USER_CONFIG_PATH)
 ALBUM_BLACKLIST = dict()
 
 #start ices stream (CONSTANT)
-ices_process = subprocess.Popen(['ices', './config/ices.xml'], 
+ices_process = subprocess.Popen(['ices', f'{DAEMON_DIR}/config/ices.xml'], 
                                 stdin=subprocess.PIPE, 
                                 stdout=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL)
-print("Initializing IceS...")
+logging.debug("Initializing IceS...")
 time.sleep(3)
-print("IceS started.")
+logging.debug("IceS started.")
 
 try:
     offset = False
     while True:
         restart = False #flag initialize
 
-        print("Finding time slot...")
+        logging.debug("Finding time slot...")
         #find currently applicable slot
         slot = find_current_slot(slots, offset)
         offset = False
         
         if not (slot is None):
-            print("Time slot found!")
-            print(f"start: {slot.start}\nend: {slot.end}")
+            logging.debug("Time slot found!")
+            logging.debug(f"start: {slot.start}\nend: {slot.end}")
 
             some_album_played = False
             #get slot albums
@@ -248,42 +250,42 @@ try:
                     continue #skip this album
                 
                 remaining_seconds = get_remaining_seconds(slot)
-                print(f"remaining seconds: {remaining_seconds}")
+                logging.debug(f"remaining seconds: {remaining_seconds}")
                 if remaining_seconds <= 900:
-                    print("Ending time slot early...")
+                    logging.debug("Ending time slot early...")
                     offset = True
                     break
 
                 #album playback successfull
                 some_album_played = True
 
-                print("Accessing album at directory " + dir)
+                logging.debug("Accessing album at directory " + dir)
                 #update current image (find using imgdhr)
                 update_image_file(dir, album_metadata)
 
                 #loop through tracks (cache album length?)
                 album_length = 0
-                for file_path, track_metadata in tracks:   
+                for file_path, track_metadata in tracks:
                     length = float(track_metadata['length'])
                     album_length += length
                          
                     #update metadata.txt
                     update_metadata_file(track_metadata, ices_process)  
-                    print("Metadata.txt updated!")
+                    logging.debug("Metadata.txt updated!")
 
                     #decode file into raw pcm (ffmpeg run)
-                    print(f"Converting file {track_metadata['filename']} to pcm:")
+                    logging.debug(f"Converting file {track_metadata['filename']} to pcm:")
                     pcm = to_pcm(file_path)
 
                     #pipe pcm to ices (terminate after 5 minutes if applicable):
-                    print("Writing pcm to IceS process stdin:")
+                    logging.debug("Writing pcm to IceS process stdin:")
                     ices_process.stdin.write(pcm)
                     ices_process.stdin.flush()
                         
                     #check if config was edited
                     recent_last_edited = os.path.getmtime(USER_CONFIG_PATH)
                     if last_edited != recent_last_edited:
-                        # print("Config edited, updating slots and restarting...")
+                        logging.debug("Config edited, updating slots and restarting...")
                         last_edited = recent_last_edited 
                         slots = parse_slots()
 
@@ -296,7 +298,7 @@ try:
                 
                 #check if album runtime has surpassed alloted slot time
                 if album_length >= remaining_seconds:
-                    print("Album surpassed slot length. Seeking new slot...")
+                    logging.debug("Album surpassed slot length. Seeking new slot...")
                     offset = False
                     break
                 
@@ -304,35 +306,35 @@ try:
 
             #end of slot!
             if not some_album_played:
-                print("No album played. Check that sufficient albums have been supplied. Sleeping for 60 seconds...")
+                logging.debug("No album played. Check that sufficient albums have been supplied. Sleeping for 60 seconds...")
                 time.sleep(60)
 
                 #check if config was edited
                 recent_last_edited = os.path.getmtime(USER_CONFIG_PATH)
                 if last_edited != recent_last_edited:
-                    # print("Config edited, updating slots and restarting...")
+                    logging.debug("Config edited, updating slots and restarting...")
                     last_edited = recent_last_edited 
                     slots = parse_slots()
 
         else:
             #sleep for an amount of time, play an intermission, etc... then try again
-            print("No slot available. Check that slots are specified. Sleeping for 60 seconds...")
+            logging.debug("No slot available. Check that slots are specified. Sleeping for 60 seconds...")
             time.sleep(60)
 
             #check if config was edited
             recent_last_edited = os.path.getmtime(USER_CONFIG_PATH)
             if last_edited != recent_last_edited:
-                # print("Config edited, updating slots and restarting...")
+                logging.debug("Config edited, updating slots and restarting...")
                 last_edited = recent_last_edited 
                 slots = parse_slots()
 
 except KeyboardInterrupt:
     ices_process.stdin.close()
     ices_process.wait()
-    print(f"\nIceS closed with exit code: {ices_process.poll()}")
+    logging.debug(f"\nIceS closed with exit code: {ices_process.poll()}")
 
 except:
     logging.exception("Unexpected error:")
     ices_process.stdin.close()
     ices_process.wait()
-    print(f"\nIceS closed with exit code: {ices_process.poll()}")
+    logging.debug(f"\nIceS closed with exit code: {ices_process.poll()}")
