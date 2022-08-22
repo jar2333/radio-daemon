@@ -8,15 +8,17 @@ import subprocess
 import signal
 import mutagen
 import imghdr
+import sys
 from random import shuffle
 
 import logging
 
 DAEMON_DIR = "/home/elaine/app/source_daemon"
 
-logging.basicConfig(level=logging.DEBUG, filename=f"{DAEMON_DIR}/log/app.log")
+# USER_CONFIG_PATH = "user-config.xml"
+USER_CONFIG_PATH = sys.argv[1]
 
-USER_CONFIG_PATH = "user-config.xml"
+logging.basicConfig(level=logging.DEBUG, filename=f"{DAEMON_DIR}/log/app.log")
 
 def to_pcm(file_path):
     #hardcoded: sample rate 44100, channels 2. IceS expects these two values (specified in ices.xml)
