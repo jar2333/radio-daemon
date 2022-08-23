@@ -223,7 +223,7 @@ time.sleep(3)
 logging.debug("IceS started.")
 
 #set SIGTERM callback 
-signal.signal(signal.SIGTERM, lambda: close_program(ices_process))
+signal.signal(signal.SIGTERM, lambda sig, frame: close_program(ices_process))
 
 try:
     offset = False
