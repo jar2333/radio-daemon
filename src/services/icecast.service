@@ -1,0 +1,14 @@
+[Unit]
+Description=Icecast Server
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=elaine
+ExecStart=/usr/bin/icecast2 -c /home/elaine/app/source_daemon/config/icecast.xml
+
+[Install]
+WantedBy=multi-user.target

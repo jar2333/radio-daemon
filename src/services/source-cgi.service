@@ -1,0 +1,19 @@
+[Unit]
+Description=Icecast source stream
+After=icecast.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=elaine
+
+WorkingDirectory=/home/elaine/app/source_daemon
+
+ExecStart=/home/elaine/app/source_daemon/venv/bin/uvicorn --workers=4 --host=64.227.27.239 --port=4444 --no-access-log src.cgi:app
+ExecReload=/bin/kill -HUP ${MAINPID}
+
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Icecast source stream
+After=icecast.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=elaine
+ExecStart=/home/elaine/app/source_daemon/venv/bin/python3 /home/elaine/app/source_daemon/src/source.py /home/elaine/app/source_daemon/user_config.xml
+
+[Install]
+WantedBy=multi-user.target
