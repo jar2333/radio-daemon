@@ -9,6 +9,8 @@ CHANNELS=2
 
 NEW_MOUNT=test
 
+sleep 5
+
 while true; 
 do { 
     ffmpeg -i http://localhost:$ICECAST_PORT/$ICECAST_MOUNT \
