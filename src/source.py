@@ -197,14 +197,12 @@ def find_current_slot(slots, offset):
     
 def has_day_passed(album_play_date):
     return (datetime.datetime.now() - album_play_date).total_seconds() >= 86400
-#slots (defined by user-config.xml)
-#--albums (directory)
-#----songs (files)
 
-#things to update, and when:
-# change slot  -> new genre -> update metadata.txt
-# change album -> new album title, album artist, album year -> update metadata.txt
-# change song  -> new song title, song artist, song year -> update metadata.txt
+def close_program(sub):
+    ices_process.stdin.close()
+    ices_process.wait()
+    logging.debug(f"\nIceS closed with exit code: {ices_process.poll()}")
+    sys.exit(0)
 
 slots = parse_slots()
 last_edited = os.path.getmtime(USER_CONFIG_PATH)
@@ -223,6 +221,9 @@ ices_process = subprocess.Popen(['ices', f'{DAEMON_DIR}/config/ices.xml'],
 logging.debug("Initializing IceS...")
 time.sleep(3)
 logging.debug("IceS started.")
+
+#set SIGTERM callback 
+signal.signal(signal.SIGTERM, lambda: close_program(ices_process))
 
 try:
     offset = False
@@ -331,12 +332,10 @@ try:
                 slots = parse_slots()
 
 except KeyboardInterrupt:
-    ices_process.stdin.close()
-    ices_process.wait()
-    logging.debug(f"\nIceS closed with exit code: {ices_process.poll()}")
+    logging.debug("Config edited, updating slots and restarting...")
 
 except:
     logging.exception("Unexpected error:")
-    ices_process.stdin.close()
-    ices_process.wait()
-    logging.debug(f"\nIceS closed with exit code: {ices_process.poll()}")
+
+finally:
+    close_program(ices_process)
