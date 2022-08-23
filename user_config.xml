@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<config>
+    <timeslot>
+
+        <genre>
+            acid/techno
+        </genre>
+
+        <time>
+            <start>03:10</start>
+            <end>03:25</end>
+        </time>
+
+        <albums>
+            /home/elaine/Downloads/acid_planet
+        </albums>
+
+        <blacklist>
+            <!-- <album>(ACID PLANET 11) Musik Aus Strom - Acid Planet 11 (1995) [2016]</album>
+            <album>(ACID PLANET 10) BS 1 - Acid Planet 10 (1995) [2016]</album>
+            <album>(ACID PLANET 12) Musik Aus Strom - Acid Planet 12 (1995) [2016]</album>
+            <album>(ACID PLANET 13) Funkstorung - Acid Planet 13 (1995) [2016]</album>
+            <album>(ACID PLANET 14) Musik Aus Strom - Acid Planet 14 (1995) [2016]</album>
+            <album>(ACID PLANET 15) Godzilla vs. Metalhead - Destroy My Brain (1995) [2016]</album>
+            <album>(ACID PLANET 16) Unit Moebius - Live At The Muzenstraat (1996) [2016]</album>
+            <album>(ACID PLANET 17) Unit Moebius - Live Somewhere Else (1996) [2016]</album>
+            <album>(ACID PLANET 18) Funkstorung - Elektromotor (1996) [2016]</album>
+            <album>(ACID PLANET 2) BS 1 - Acid Planet 2 (1994) [2015]</album>
+            <album>(ACID PLANET 3) Rude 66 - Acid Planet 3 (1994) [2015]</album>
+            <album>(ACID PLANET 4) Beverly Hills 808303 - Acid Planet 4 (2010) [2015]</album>
+            <album>(ACID PLANET 5) Unit Moebius - Live In The Hague (1994) [2016]</album>
+            <album>(ACID PLANET 6) Unit Moebius - Acid Planet 6 (1994) [2016]</album>
+            <album>(ACID PLANET 7) Beverly Hills 808303 - Acid Planet 7 (1994) [2016]</album>
+            <album>(ACID PLANET 8) Sulphur Surfer vs. Interr-Ference - Acid Planet 8 (1994) [2016]</album>
+            <album>(ACID PLANET 9) Unit Moebius - Golden Techno Classics (1995) [2016]</album> -->
+        </blacklist>
+
+    </timeslot>
+</config>
