@@ -15,7 +15,6 @@ import logging
 
 DAEMON_DIR = "/home/elaine/app/source_daemon"
 
-# USER_CONFIG_PATH = "user-config.xml"
 USER_CONFIG_PATH = sys.argv[1]
 
 logging.basicConfig(level=logging.DEBUG, filename=f"{DAEMON_DIR}/log/app.log")
@@ -129,31 +128,36 @@ def parse_slots():
     root = tree.getroot()
 
     #parse slots
-    for slot in root.findall('timeslot'):
-        start  = datetime.time.fromisoformat(slot.find('time').find('start').text)
-        end    = datetime.time.fromisoformat(slot.find('time').find('end').text)
-        genre  = slot.find('genre').text.strip()
+    try:
+        for slot in root.findall('timeslot'):
+            start  = datetime.time.fromisoformat(slot.find('time').find('start').text)
+            end    = datetime.time.fromisoformat(slot.find('time').find('end').text)
+            genre  = slot.find('genre').text.strip()
 
-        s = TimeSlot(start, end, genre)
+            s = TimeSlot(start, end, genre)
 
-        #parse path to find album dirs
-        albums_path = os.path.expanduser(slot.find('albums').text.strip())
+            #parse path to find album dirs
+            albums_path = os.path.expanduser(slot.find('albums').text.strip())
 
-        #parse blacklisted album dirs
-        blacklisted = {e.text.strip() for e in slot.find('blacklist').findall('album')}
+            #parse blacklisted album dirs
+            blacklisted = {e.text.strip() for e in slot.find('blacklist').findall('album')}
 
-        #add albums to slot in randomized order
-        album_directories = os.listdir(albums_path)
-        shuffle(album_directories)
+            #add albums to slot in randomized order
+            album_directories = os.listdir(albums_path)
+            shuffle(album_directories)
 
-        for album_dir in album_directories:
-            if not album_dir in blacklisted:
-                path = f"{albums_path}/{album_dir}"
-                # metadata_elements = [album.find(t) for t in ['title', 'artist', 'year']]
-                # metadata = {e.tag : e.text.strip() for e in metadata_elements if not (e is None)}
-                s.add_album(path, {})
+            for album_dir in album_directories:
+                if not album_dir in blacklisted:
+                    path = f"{albums_path}/{album_dir}"
+                    # metadata_elements = [album.find(t) for t in ['title', 'artist', 'year']]
+                    # metadata = {e.tag : e.text.strip() for e in metadata_elements if not (e is None)}
+                    s.add_album(path, {})
 
-        slots.append(s)
+            slots.append(s)
+    except:
+        logging.exception("Config parse error:")
+        logging.debug("Closing...")
+        sys.exit(-1)
 
     for s in slots:
         for dir, tracks, album_metadata in s.albums:
@@ -199,9 +203,9 @@ def has_day_passed(album_play_date):
     return (datetime.datetime.now() - album_play_date).total_seconds() >= 86400
 
 def close_program(sub):
-    ices_process.stdin.close()
-    ices_process.wait()
-    logging.debug(f"\nIceS closed with exit code: {ices_process.poll()}")
+    sub.stdin.close()
+    sub.wait()
+    logging.debug(f"\nIceS closed with exit code: {sub.poll()}")
     sys.exit(0)
 
 slots = parse_slots()
@@ -237,7 +241,8 @@ try:
         
         if not (slot is None):
             logging.debug("Time slot found!")
-            logging.debug(f"start: {slot.start}\nend: {slot.end}")
+            logging.debug(f"start: {slot.start}")
+            logging.debug(f"end: {slot.end}")
 
             some_album_played = False
             #get slot albums
@@ -246,7 +251,7 @@ try:
                     break
 
                 #check if album is blacklisted:
-                if not dir in ALBUM_BLACKLIST or has_day_passed(ALBUM_BLACKLIST[dir]):
+                if (not dir in ALBUM_BLACKLIST) or has_day_passed(ALBUM_BLACKLIST[dir]):
                     #update blacklist last_played
                     ALBUM_BLACKLIST[dir] = datetime.datetime.now()
                 else:
@@ -309,8 +314,8 @@ try:
 
             #end of slot!
             if not some_album_played:
-                logging.debug("No album played. Check that sufficient albums have been supplied. Sleeping for 60 seconds...")
-                time.sleep(60)
+                logging.debug("No album played. Check that sufficient albums have been supplied. Sleeping for 5 minutes...")
+                time.sleep(300)
 
                 #check if config was edited
                 recent_last_edited = os.path.getmtime(USER_CONFIG_PATH)
@@ -321,8 +326,8 @@ try:
 
         else:
             #sleep for an amount of time, play an intermission, etc... then try again
-            logging.debug("No slot available. Check that slots are specified. Sleeping for 60 seconds...")
-            time.sleep(60)
+            logging.debug("No slot available. Check that slots are specified. Sleeping for 5 minutes...")
+            time.sleep(300)
 
             #check if config was edited
             recent_last_edited = os.path.getmtime(USER_CONFIG_PATH)
@@ -332,7 +337,7 @@ try:
                 slots = parse_slots()
 
 except KeyboardInterrupt:
-    logging.debug("Config edited, updating slots and restarting...")
+    logging.debug("Keyboard interrupt.")
 
 except:
     logging.exception("Unexpected error:")
