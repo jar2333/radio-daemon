@@ -1,9 +1,6 @@
 # Icecast radio source daemon
 
-```
-python3 src/source.py
-uvicorn src.cgi:app --port 4444
-```
+WARNING: this code is not yet plug and play. One cannot simply clone the repository and run it. It is here for documentation purposes.
 
 Everything available to use this is in the repository, but one must have `ffmpeg`, `ices`, and `icecast2` installed. IceS can be built from source, get the source tarball here: https://icecast.org/ices/
 
