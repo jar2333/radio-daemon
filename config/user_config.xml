@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<config>
+    <timeslot>
+
+        <genre>
+            acid/techno
+        </genre>
+
+        <time>
+            <start>03:10</start>
+            <end>03:25</end>
+        </time>
+
+        <albums>
+            /home/elaine/Downloads/acid_planet
+        </albums>
+
+        <blacklist>
+            <!-- <album>(ACID PLANET 11) Musik Aus Strom - Acid Planet 11 (1995) [2016]</album -->
+        </blacklist>
+
+    </timeslot>
+</config>
