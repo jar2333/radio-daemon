@@ -8,7 +8,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=elaine
-ExecStart=/usr/bin/icecast2 -c /home/elaine/app/source_daemon/config/icecast.xml
+ExecStart=/usr/bin/icecast2 -c /srv/ftp/icecast.xml
 
 [Install]
 WantedBy=multi-user.target
