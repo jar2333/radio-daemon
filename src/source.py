@@ -1,4 +1,3 @@
-#import hashlib
 import xml.etree.ElementTree as ET
 import datetime
 import time

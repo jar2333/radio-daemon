@@ -1,6 +1,7 @@
 [Unit]
 Description=Icecast source mp3 restream
 After=source.service
+Requires=source.service
 StartLimitIntervalSec=0
 
 [Service]

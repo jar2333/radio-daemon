@@ -1,6 +1,7 @@
 [Unit]
 Description=Icecast source stream
 After=icecast.service
+Requires=icecast.service
 StartLimitIntervalSec=0
 
 [Service]
