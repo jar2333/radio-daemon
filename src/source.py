@@ -30,7 +30,7 @@ def update_metadata_file(track_metadata, ices_process):
     #add accessed metadata, sensitive to when this file is written!
     track_metadata['accessed'] = str(datetime.datetime.now(datetime.timezone.utc))
 
-    with open(f"{DAEMON_DIR}/tmp/metadata.txt", 'w') as f:
+    with open("/tmp/metadata.txt", 'w') as f:
         f.write("\n".join([f"{key}={track_metadata[key]}" for key in track_metadata]))
 
     #send signal to ices process that metadata.txt updated     
@@ -38,7 +38,7 @@ def update_metadata_file(track_metadata, ices_process):
 
 def update_image_file(dir, album_metadata):
     image_file = album_metadata['image']
-    shutil.copy(f"{dir}/{image_file}", f"{DAEMON_DIR}/tmp/current")
+    shutil.copy(f"{dir}/{image_file}", "/tmp/current")
 
 def get_file_metadata(file_path):
     f = mutagen.File(file_path)
@@ -217,7 +217,7 @@ last_edited = os.path.getmtime(USER_CONFIG_PATH)
 ALBUM_BLACKLIST = dict()
 
 #start ices stream (CONSTANT)
-ices_process = subprocess.Popen(['ices', f'{DAEMON_DIR}/config/ices.xml'], 
+ices_process = subprocess.Popen(['ices', '/srv/ftp/ices.xml'], 
                                 stdin=subprocess.PIPE, 
                                 stdout=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL)
